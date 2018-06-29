@@ -1,28 +1,47 @@
 <template>
   <section class="container p-5" ref="container">
     <div class="row">
-      <div class="col-md-4 mb-5">    
+      <div class="col-md-4 mb-5 border">    
         <div v-html="styleContent"></div>
         <!-- trek video ad container -->
-        <component :is="dynamicComponent" />
+        <div class="mt-3">
+          <component :is="dynamicComponent" />
+        </div>
       </div>
       <!-- <div class="col-md-6 border">
         <textarea  id="" cols="30" rows="10" class="form-control w-100" v-model="css"></textarea>
       </div> -->
       <div class="col-md-8 border" style="font-size:12px;">
-        <pre v-highlightjs contenteditable="true" ref="styleEditor" @keyup="update('styleEditor', 'styleContent')">
-          <code class="html">{{styleContent}}</code>
-        </pre>
-        <pre v-highlightjs contenteditable="true" ref="htmlEditor" @keyup="update('htmlEditor', 'htmlContent')">
-          <code class="html">{{htmlContent}}</code>  
-        </pre>
+        <div class="mt-3">
+          <codemirror
+            :value="styleContent" 
+            :options="{ tabSize: 2, mode: 'text/css', theme: 'monokai', lineNumbers: true, line: true }"
+            @input="onStyleEditorChange">
+          </codemirror>
+        </div>
+
+        <div class="mt-3">
+          <codemirror
+            :value="htmlContent" 
+            :options="{ tabSize: 2, mode: 'text/html', theme: 'monokai', lineNumbers: true, line: true }"
+            @input="onHtmlEditorChange">
+          </codemirror>
+        </div>
+
       </div>
     </div>
   </section>
 </template>
 
 <script>
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/theme/monokai.css';
+import 'codemirror/mode/css/css.js'
+import 'codemirror/mode/xml/xml.js'
+import'codemirror/addon/selection/active-line.js'
 import pretty from 'pretty';
+import debounce from 'lodash/debounce';
 //import $ from 'jquery';
  
 const css = `
@@ -86,7 +105,7 @@ const [
 
 export default {
   components: {
-
+    codemirror
   },
   data() {
     return {
@@ -123,10 +142,12 @@ export default {
     },
   },
   methods: {
-    update(refKey, dataName) {
-      this[dataName] = pretty(this.$refs[refKey].textContent);
+    onHtmlEditorChange: debounce(function(newCode) {
+      this.htmlContent = newCode
+    }, 1200),
+    onStyleEditorChange(newCode) {
+      this.styleContent = newCode
     }
   }
 }
 </script>
-<style src="highlight.js/styles/github.css"></style>
