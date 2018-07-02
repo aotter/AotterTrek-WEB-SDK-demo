@@ -1,7 +1,7 @@
 <template>
   <section class="container p-5" ref="container">
     <div class="row">
-      <div class="col-md-4 mb-5 border">    
+      <div class="col-md-4 border">    
         <div v-html="styleContent"></div>
         <!-- trek video ad container -->
         <div class="mt-3">
@@ -12,6 +12,8 @@
         <textarea  id="" cols="30" rows="10" class="form-control w-100" v-model="css"></textarea>
       </div> -->
       <div class="col-md-8 border" style="font-size:12px;">
+
+        <h3 class="my-3">樣式</h3>
         <div class="mt-3">
           <codemirror
             :value="styleContent" 
@@ -20,6 +22,7 @@
           </codemirror>
         </div>
 
+        <h3 class="my-3">版型</h3>
         <div class="mt-3">
           <codemirror
             :value="htmlContent" 
@@ -28,6 +31,28 @@
           </codemirror>
         </div>
 
+      </div>
+      <div class="col-md-12 border">
+    
+        <h3 class="my-3">結果</h3>
+        <h4 class="my-2">在 head 中加入:</h4>
+        <div class="mt-3">
+          <codemirror
+            :value="installScriptContent" 
+            :options="{ tabSize: 2, mode: 'text/html', theme: 'monokai', lineNumbers: true, line: true, readOnly: true }">
+          </codemirror>
+        </div>
+        <h4 class="my-2">在想顯示廣告的地方加入:</h4>
+        <div class="mt-3">
+          <codemirror
+            :value="result" 
+            :options="{ tabSize: 2, mode: 'text/html', theme: 'monokai', lineNumbers: true, line: true, readOnly: true }">
+          </codemirror>
+        </div>
+
+        <h4 class="my-3">
+          <a href="https://github.com/aotter/AotterTrek-WEB-SDK/blob/master/docs/nativeVideoAd.md">詳細文件</a>
+        </h4>
       </div>
     </div>
   </section>
@@ -78,13 +103,9 @@ const css = `
   background:#fff;
 }`.trim();
 
-const [
-  templateStart,
-  templateBody,
-  templateEnd
-] = [
-`<div id="article-video" data-trek-cloak>`,
-  `<!-- video placement -->
+const templateHtml = `
+<div id="article-video" data-trek-cloak>
+  <!-- video placement -->
   <video></video>
   <!-- ad info -->
   <a data-trek="URL" target="_blank" style="font-decoration:none;">
@@ -99,9 +120,17 @@ const [
         </td>
       </tr>
     </table>
-  </a>`,
-`</div>`
-]
+  </a>
+</div>`;
+
+const installScript = `
+  (function(w, d, s, src, n) {
+    var js, ajs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(n)) return;
+    js = d.createElement(s); js.id = n;
+    w[n] = w[n] || function() { (w[n].q = w[n].q || []).push(arguments) }; w[n].l = 1 * new Date();
+    js.async = 1; js.src = src; ajs.parentNode.insertBefore(js, ajs)
+  })(window, document, 'script', 'https://tkportal.aotter.net/public/2.4.0/sdk.js?client_id=yEFcFoJaruNorh5RqtuR', 'AotterTrek');`;
 
 export default {
   components: {
@@ -110,10 +139,8 @@ export default {
   data() {
     return {
       css,
-      templateStart,
-      templateBody,
-      templateEnd,
-      htmlContent: pretty(`${templateStart}${templateBody}${templateEnd}`),
+      installScript,
+      htmlContent: pretty(`${templateHtml}`),
       styleContent: pretty(`<style>${css}</style>`),
     }
   },
@@ -140,6 +167,38 @@ export default {
         }
       }
     },
+    scriptStart() {
+      return `<` + `script>`;
+    },
+    scriptEnd() {
+      return `</` + `script>`;
+    },
+    result() {
+      return pretty(`
+        <div>
+          ${this.styleContent}
+          ${this.htmlContent}
+          ${this.scriptStart}
+            AotterTrek('nativeVideoAd', {
+              selector: '#article-video',
+              onAdLoad: function(node) {
+                //廣告載入成功時的callback
+              },
+              onAdFail: function(node) {
+                //廣告載入失敗時的callback
+              }
+            });
+          ${this.scriptEnd}
+        </div>
+      `);
+    },
+    installScriptContent() {
+      return pretty(`
+        ${this.scriptStart}
+        ${installScript}
+        ${this.scriptEnd}
+      `);
+    }
   },
   methods: {
     onHtmlEditorChange: debounce(function(newCode) {
