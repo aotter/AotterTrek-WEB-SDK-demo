@@ -5,7 +5,7 @@
         <div v-html="styleContent"></div>
         <!-- trek video ad container -->
         <div class="mt-3">
-          <component :is="dynamicComponent" />
+          <TrekVideoAd :html="htmlContent" />
         </div>
       </div>
       <!-- <div class="col-md-6 border">
@@ -67,6 +67,7 @@ import 'codemirror/mode/xml/xml.js'
 import'codemirror/addon/selection/active-line.js'
 import pretty from 'pretty';
 import debounce from 'lodash/debounce';
+import TrekVideoAd from '~/components/TrekVideoAd';
 //import $ from 'jquery';
  
 const css = `
@@ -132,9 +133,12 @@ const installScript = `
     js.async = 1; js.src = src; ajs.parentNode.insertBefore(js, ajs)
   })(window, document, 'script', 'https://tkportal.aotter.net/public/2.4.0/sdk.js?client_id=yEFcFoJaruNorh5RqtuR', 'AotterTrek');`;
 
+let didInstallScript = false;
+
 export default {
   components: {
-    codemirror
+    codemirror,
+    TrekVideoAd
   },
   data() {
     return {
@@ -145,28 +149,6 @@ export default {
     }
   },
   computed: {
-    dynamicComponent() {
-      return {
-        template: this.htmlContent,
-        props: {
-          ...this.data
-        },
-        mounted() {
-          (function(w, d, s, src, n) {
-            var js, ajs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(n)) return;
-            js = d.createElement(s); js.id = n;
-            w[n] = w[n] || function() { (w[n].q = w[n].q || []).push(arguments) }; w[n].l = 1 * new Date();
-            js.async = 1; js.src = src; ajs.parentNode.insertBefore(js, ajs)
-          })(window, document, 'script', 'https://tkportal.aotter.net/public/2.4.0/sdk.js?client_id=yEFcFoJaruNorh5RqtuR', 'AotterTrek');
-
-          AotterTrek('nativeVideoAd', {
-            selector: '#article-video'
-          });
-    
-        }
-      }
-    },
     scriptStart() {
       return `<` + `script>`;
     },
